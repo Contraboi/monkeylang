@@ -29,10 +29,23 @@ const (
 	RBRACE = "}"
 
 	// Keywords
-	FUCNTION = "FUNCTION"
+	FUNCTION = "FUNCTION"
 	LET      = "LET"
 )
 
 func NewToken(tokenType TokenType, ch byte) Token {
 	return Token{Type: tokenType, Literal: string(ch)}
+}
+
+var keywords = map[string]TokenType{
+	"fn":  FUNCTION,
+	"let": LET,
+}
+
+func LookupIdent(ident string) TokenType {
+	if tkn, ok := keywords[ident]; ok {
+		return tkn
+	}
+
+	return IDENT
 }

@@ -33,12 +33,11 @@ func (l *Lexer) readChar() {
 
 	l.position = l.readPosition
 	l.readPosition++
-
-	fmt.Println(l.String())
 }
 
 func (l *Lexer) NextToken() token.Token {
 	var tkn token.Token
+	l.skipWhitespace()
 
 	switch l.ch {
 	case '=':
@@ -60,8 +59,54 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tkn.Literal = ""
 		tkn.Type = token.EOF
+	default:
+		if isLetter(l.ch) {
+			tkn.Literal = l.readIndetifier()
+			tkn.Type = token.LookupIdent(tkn.Literal)
+			return tkn
+		} else if isDigit(l.ch) {
+			tkn.Literal = l.readNumber()
+			tkn.Type = token.INT
+			return tkn
+		} else {
+			tkn = token.NewToken(token.ILLEGAL, l.ch)
+		}
 	}
 
 	l.readChar()
 	return tkn
+}
+
+func (l *Lexer) readIndetifier() string {
+	start := l.position
+	for isLetter(l.ch) {
+		l.readChar()
+	}
+	end := l.position
+	return l.input[start:end]
+
+}
+
+func (l *Lexer) skipWhitespace() {
+	for l.ch == ' ' || l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+		l.readChar()
+	}
+}
+
+func (l *Lexer) readNumber() string {
+	start := l.position
+	for isDigit(l.ch) {
+		l.readChar()
+	}
+	end := l.position
+	return l.input[start:end]
+}
+
+func isDigit(ch byte) bool {
+	return '0' <= ch && ch <= '9'
+}
+func isLetter(ch byte) bool {
+	isLowerCaseAtoZ := 'a' <= ch && ch <= 'z'
+	isUpperCaseAtoZ := 'A' <= ch && ch <= 'Z'
+	return isLowerCaseAtoZ || isUpperCaseAtoZ || ch == '_'
 }
