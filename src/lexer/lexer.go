@@ -55,17 +55,16 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			tkn = token.NewCharToken(token.ASSIGN, l.ch)
 		}
-	case '+':
-		tkn = token.NewCharToken(token.PLUS, l.ch)
-	case '-':
-		tkn = token.NewCharToken(token.MINUS, l.ch)
 	case '!':
-
 		if l.peekChar() == '=' {
 			tkn = l.makeTwoCharToken(token.NOT_EQ)
 		} else {
 			tkn = token.NewCharToken(token.BANG, l.ch)
 		}
+	case '+':
+		tkn = token.NewCharToken(token.PLUS, l.ch)
+	case '-':
+		tkn = token.NewCharToken(token.MINUS, l.ch)
 	case '*':
 		tkn = token.NewCharToken(token.ASTERISK, l.ch)
 	case '/':
