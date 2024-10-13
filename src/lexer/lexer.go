@@ -21,18 +21,27 @@ func New(input string) *Lexer {
 }
 
 func (l *Lexer) String() string {
-	return fmt.Sprintf("input: %s | position: %d | readPosition: %d | ch: %s", l.input, l.position, l.readPosition, string(l.ch))
+	return fmt.Sprintf("position: %d | readPosition: %d | ch: %s", l.position, l.readPosition, string(l.ch))
+}
+
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0 // EOF
+	} else {
+		return l.input[l.readPosition]
+	}
 }
 
 func (l *Lexer) readChar() {
-	if l.readPosition >= len(l.input) {
-		l.ch = 0 // EOF
-	} else {
-		l.ch = l.input[l.readPosition]
-	}
-
+	l.ch = l.peekChar()
 	l.position = l.readPosition
 	l.readPosition++
+}
+
+func (l *Lexer) makeTwoCharToken(tkn token.TokenType) token.Token {
+	ch := l.ch
+	l.readChar()
+	return token.NewStringToken(tkn, string(ch)+string(l.ch))
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -41,24 +50,44 @@ func (l *Lexer) NextToken() token.Token {
 
 	switch l.ch {
 	case '=':
-		tkn = token.NewToken(token.ASSIGN, l.ch)
+		if l.peekChar() == '=' {
+			tkn = l.makeTwoCharToken(token.EQ)
+		} else {
+			tkn = token.NewCharToken(token.ASSIGN, l.ch)
+		}
 	case '+':
-		tkn = token.NewToken(token.PLUS, l.ch)
+		tkn = token.NewCharToken(token.PLUS, l.ch)
+	case '-':
+		tkn = token.NewCharToken(token.MINUS, l.ch)
+	case '!':
+
+		if l.peekChar() == '=' {
+			tkn = l.makeTwoCharToken(token.NOT_EQ)
+		} else {
+			tkn = token.NewCharToken(token.BANG, l.ch)
+		}
+	case '*':
+		tkn = token.NewCharToken(token.ASTERISK, l.ch)
+	case '/':
+		tkn = token.NewCharToken(token.SLASH, l.ch)
+	case '<':
+		tkn = token.NewCharToken(token.LT, l.ch)
+	case '>':
+		tkn = token.NewCharToken(token.GT, l.ch)
 	case ';':
-		tkn = token.NewToken(token.SEMICOLON, l.ch)
+		tkn = token.NewCharToken(token.SEMICOLON, l.ch)
 	case ',':
-		tkn = token.NewToken(token.COMMA, l.ch)
+		tkn = token.NewCharToken(token.COMMA, l.ch)
 	case '(':
-		tkn = token.NewToken(token.LPAREN, l.ch)
+		tkn = token.NewCharToken(token.LPAREN, l.ch)
 	case ')':
-		tkn = token.NewToken(token.RPAREN, l.ch)
+		tkn = token.NewCharToken(token.RPAREN, l.ch)
 	case '{':
-		tkn = token.NewToken(token.LBRACE, l.ch)
+		tkn = token.NewCharToken(token.LBRACE, l.ch)
 	case '}':
-		tkn = token.NewToken(token.RBRACE, l.ch)
+		tkn = token.NewCharToken(token.RBRACE, l.ch)
 	case 0:
-		tkn.Literal = ""
-		tkn.Type = token.EOF
+		tkn = token.NewStringToken(token.EOF, "")
 	default:
 		if isLetter(l.ch) {
 			tkn.Literal = l.readIndetifier()
@@ -69,7 +98,7 @@ func (l *Lexer) NextToken() token.Token {
 			tkn.Type = token.INT
 			return tkn
 		} else {
-			tkn = token.NewToken(token.ILLEGAL, l.ch)
+			tkn = token.NewCharToken(token.ILLEGAL, l.ch)
 		}
 	}
 
